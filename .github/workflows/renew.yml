@@ -3,7 +3,7 @@ name: Katabump Auto Renew
 on:
   schedule:
     # 每天 UTC 0点，北京时间 8点运行
-    - cron: '0 0 * * *'
+    - cron: '0 1 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,23 +27,23 @@ jobs:
 
       - name: Pick Webshare proxy
         env:
-          WEBSHARE_PROXY_LIST_URL: ${{ secrets.WEBSHARE_PROXY_LIST_URL }}
+          PROXY_LIST_CONTENT: ${{ secrets.PROXY_LIST_CONTENT }}
         run: |
-          if [ -z "$WEBSHARE_PROXY_LIST_URL" ]; then
-            echo "WEBSHARE_PROXY_LIST_URL is empty, running without Webshare proxy."
+          if [ -z "$PROXY_LIST_CONTENT" ]; then
+            echo "PROXY_LIST_CONTENT is empty, running without Webshare proxy."
             echo "HTTP_PROXY=" >> "$GITHUB_ENV"
             echo "HTTPS_PROXY=" >> "$GITHUB_ENV"
             exit 0
           fi
 
-          echo "Downloading Webshare proxy list..."
-          curl -fsSL "${WEBSHARE_PROXY_LIST_URL}" -o proxies.txt
-          echo "Proxy list downloaded. Total lines: $(wc -l < proxies.txt)"
+          echo "Using manual proxy list from Secret..."
+          echo "$PROXY_LIST_CONTENT" > proxies.txt
+          echo "Proxy list loaded. Total lines: $(wc -l < proxies.txt)"
 
           PROXY_LINE=$(grep -v '^[[:space:]]*$' proxies.txt | shuf -n 1)
 
           if [ -z "$PROXY_LINE" ]; then
-            echo "ERROR: No proxy found in Webshare proxy list."
+            echo "ERROR: No proxy found in proxy list."
             exit 1
           fi
 
